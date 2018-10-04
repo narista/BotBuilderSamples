@@ -127,6 +127,7 @@ After that, you can flip-flop the card many times.
 
 ## References
 [Bot Builder SDK V4 サンプル集](https://github.com/Microsoft/BotBuilder-Samples/tree/master/samples/csharp_dotnetcore)
+
 [Adaptive Card](http://adaptivecards.io/)
 
 
