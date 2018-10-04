@@ -120,9 +120,13 @@ public async Task OnTurnAsync(ITurnContext context, CancellationToken token = de
 ```
 
 This AdaptiveCard send the text "Hero" when user clicked "HeroCard" button.
+
 ![AdaptiveCard.png](https://qiita-image-store.s3.amazonaws.com/0/245269/48786d93-a924-e311-f826-9f1e5e887aa6.png)
-Called HeroCard。
+
+Called HeroCard.
+
 ![HeroCard.png](https://qiita-image-store.s3.amazonaws.com/0/245269/b916651b-4597-d7dc-5021-7b9d8c3dc88e.png)
+
 After that, you can flip-flop the card many times.
 
 ## References
