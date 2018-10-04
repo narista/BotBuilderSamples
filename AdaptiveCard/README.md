@@ -31,11 +31,11 @@ namespace Shunji.AdaptiveCard.Cards
 			this.Title = "Hero Card";
 			this.Text = "This is Hero Card. Which card do you want to show?";
 			this.Images = new List<CardImage>
-            {
+            		{
 				new CardImage("http://adaptivecards.io/content/cats/2.png"),
 			};
 			this.Buttons = new List<CardAction>
-            {
+            		{
 				new CardAction(ActionTypes.ImBack, "Adaptive Card", value: "Adaptive"),
 				new CardAction(ActionTypes.ImBack, "Hero Card", value: "Hero"),
 			};
