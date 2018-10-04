@@ -1,54 +1,131 @@
-﻿This sample demonstrates a simple echo bot with state with ASP.Net Core 2. The bot maintains a simple counter that increases with each message from the user.
+# BotBuilderSamples
+I would like to share the altenative for ImBack in AdaptiveCard.
 
-# To try this sample
-- Clone the samples repository
-```bash
-git clone https://github.com/Microsoft/botbuilder-samples.git
+## What is ImBack?
+ImBack is the mechanism to send a message back to the bot when user clicked a button on the HeroCard like this picture.
+![HeroCard.png](https://qiita-image-store.s3.amazonaws.com/0/245269/55be9e8e-fecc-3a17-d8a3-999080578399.png)
+
+## ImBack in HeroCard
+The code is here.
+
+```C#:HeroCardSample.cs
+// <copyright file="HeroCardSample.cs" company="Shunji Sumida">
+// Copyright (c) Shunji Sumida. All rights reserved.
+// </copyright>
+
+namespace Shunji.AdaptiveCard.Cards
+{
+	using System.Collections.Generic;
+	using Microsoft.Bot.Schema;
+
+	/// <summary>
+	/// The sample hero card.
+	/// </summary>
+	public class HeroCardSample : HeroCard
+	{
+		/// <summary>
+		/// Initializes a new instance of the <see cref="HeroCardSample"/> class.
+		/// </summary>
+		public HeroCardSample()
+		{
+			this.Title = "Hero Card";
+			this.Text = "This is Hero Card. Which card do you want to show?";
+			this.Images = new List<CardImage>
+            {
+				new CardImage("http://adaptivecards.io/content/cats/2.png"),
+			};
+			this.Buttons = new List<CardAction>
+            {
+				new CardAction(ActionTypes.ImBack, "Adaptive Card", value: "Adaptive"),
+				new CardAction(ActionTypes.ImBack, "Hero Card", value: "Hero"),
+			};
+		}
+	}
+}
 ```
-- [Optional] Update the `appsettings.json` file under `botbuilder-samples\samples\csharp_dotnetcore\02.echo-with-counter` with your botFileSecret.  For Azure Bot Service bots, you can find the botFileSecret under application settings.
-# Prerequisites
-## Visual Studio
-- Navigate to the samples folder (`botbuilder-samples\samples\csharp_dotnetcore\02.echo-with-counter`) and open EchoBotWithCounter.csproj in Visual Studio.
-- Hit F5.
 
-## Visual Studio Code
-- Open `botbuilder-samples\samples\csharp_dotnetcore\02.echo-with-counter` sample folder.
-- Bring up a terminal, navigate to `botbuilder-samples\samples\csharp_dotnetcore\02.echo-with-counter` folder.
-- Type 'dotnet run'.
+You can send the text embedded in ``value`` element when user clicked the button if you set ``ActionTypes.ImBack`` while creating the new instance with ``new CardAction()``
 
-## Testing the bot using Bot Framework Emulator
-[Microsoft Bot Framework Emulator](https://github.com/microsoft/botframework-emulator) is a desktop application that allows bot 
-developers to test and debug their bots on localhost or running remotely through a tunnel.
-- Install the Bot Framework emulator from [here](https://aka.ms/botframeworkemulator).
+## ImBack in Adaptive Card
+On the other hand, you need to set ``Action.Submit`` under ``actions`` element in the description file (JSON) of AdaptiveCard to send a text message to the bot.
 
-## Connect to bot using Bot Framework Emulator **V4**
-- Launch the Bot Framework Emulator.
-- File -> Open bot and navigate to `botbuilder-samples\samples\csharp_dotnetcore\02.echo-with-counter` folder.
-- Select `BotConfiguration.bot` file.
-# Bot state
-A key to good bot design is to track the context of a conversation, so that your bot remembers things like the answers to previous questions. Depending on what your bot is used for, you may even need to keep track of conversation state or store user related information for longer than the lifetime of one given conversation.
-
-In this example, the bot's state is used to track number of messages.
-
- A bot's state is information it remembers in order to respond appropriately to incoming messages. The Bot Builder SDK provides classes for [storing and retrieving state data](https://docs.microsoft.com/en-us/azure/bot-service/bot-builder-howto-v4-state?view=azure-bot-service-4.0&tabs=js) as an object associated with a user or a conversation.
-
-    - Conversation properties help your bot keep track of the current conversation the bot is having with the user. If your bot needs to complete a sequence of steps or switch between conversation topics, you can use conversation properties to manage steps in a sequence or track the current topic. Since conversation properties reflect the state of the current conversation, you typically clear them at the end of a session, when the bot receives an end of conversation activity.
-    
-    - User properties can be used for many purposes, such as determining where the user's prior conversation left off or simply greeting a returning user by name. If you store a user's preferences, you can use that information to customize the conversation the next time you chat. For example, you might alert the user to a news article about a topic that interests her, or alert a user when an appointment becomes available. You should clear them if the bot receives a delete user data activity.
-
-# Deploy this bot to Azure
-You can use the [MSBot](https://github.com/microsoft/botbuilder-tools) Bot Builder CLI tool to clone and configure any services this sample depends on. 
-
-To install all Bot Builder tools - 
-```bash
-npm i -g msbot chatdown ludown qnamaker luis-apis botdispatch luisgen
+```son:AdaptiveCardSample.json
+{
+  "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+  "type": "AdaptiveCard",
+  "version": "1.0",
+  "body": [
+    {
+      "type": "Image",
+      "url": "http://adaptivecards.io/content/cats/2.png",
+      "size": "",
+      "spacing": "none"
+    },
+    {
+      "type": "TextBlock",
+      "text": "Adaptive Card",
+      "size": "medium",
+      "weight": "bolder"
+    },
+    {
+      "type": "TextBlock",
+      "text": "This is Adaptive Card. Which do you want to show?"
+    }
+  ],
+  "actions": [
+    {
+      "type": "Action.Submit",
+      "title": "Adaptive Card",
+      "data": "Adaptive!"
+    },
+    {
+      "type": "Action.Submit",
+      "title": "HeroCard",
+      "data": "Hero"
+    }
+  ]
+}
 ```
-To clone this bot, run
+
+However, it is just similar to the POST with Form of HTML. You need to set ``data`` under ``actions`` to the text that you want to send back to the bot as the input text by user as no message will be sent to the bot if there are no input eleements. After that, you can send the text message to the bot similar to the RichCard like HeroCard.
+
+## Hanling in Bot Application
+It is very important point that the AdaptiveCard sends the message as user entry if you set ``data`` element. The bot application will get null if AdaptiveCard deos not have ``data`` element as the message will be set to ```Activity.Text``` when user submit the button.
+
+```C#:EchoWithCounterBot.cs
+public async Task OnTurnAsync(ITurnContext context, CancellationToken token = default(CancellationToken))
+{
+	if (context.Activity.Type == ActivityTypes.Message)
+	{
+		if (!string.IsNullOrWhiteSpace(context.Activity.Text))
+		{
+			Activity reply = context.Activity.CreateReply();
+			reply.Attachments = new List<Attachment>();
+			switch (context.Activity.Text)
+			{
+				case "Adaptive":
+					reply.Attachments.Add(this.CreateAdaptiveCardAttachment());
+					break;
+				case "Hero":
+					reply.Attachments.Add(new HeroCardSample().ToAttachment());
+					break;
+				default:
+					break;
+			}
+
+			await context.SendActivityAsync(reply);
+		}
+	}
+}
 ```
-msbot clone services -f deploymentScripts/msbotClone -n <BOT-NAME> -l <Azure-location> --subscriptionId <Azure-subscription-id>
-```
-# Further reading
-- [Azure Bot Service Introduction](https://docs.microsoft.com/en-us/azure/bot-service/bot-service-overview-introduction?view=azure-bot-service-4.0)
-- [Bot State](https://docs.microsoft.com/en-us/azure/bot-service/bot-builder-storage-concept?view=azure-bot-service-4.0)
-- [Write directly to storage](https://docs.microsoft.com/en-us/azure/bot-service/bot-builder-howto-v4-storage?view=azure-bot-service-4.0&tabs=jsechoproperty%2Ccsetagoverwrite%2Ccsetag)
-- [Managing conversation and user state](https://docs.microsoft.com/en-us/azure/bot-service/bot-builder-howto-v4-state?view=azure-bot-service-4.0&tabs=js)
+
+This AdaptiveCard send the text "Hero" when user clicked "HeroCard" button.
+![AdaptiveCard.png](https://qiita-image-store.s3.amazonaws.com/0/245269/48786d93-a924-e311-f826-9f1e5e887aa6.png)
+Called HeroCard。
+![HeroCard.png](https://qiita-image-store.s3.amazonaws.com/0/245269/b916651b-4597-d7dc-5021-7b9d8c3dc88e.png)
+After that, you can flip-flop the card many times.
+
+## References
+[Bot Builder SDK V4 サンプル集](https://github.com/Microsoft/BotBuilder-Samples/tree/master/samples/csharp_dotnetcore)
+
+[Adaptive Card](http://adaptivecards.io/)
